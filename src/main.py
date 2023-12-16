@@ -1,7 +1,9 @@
 import logging
+import sys
 from threading import Event, Thread
 from domain.mail import send_email
-from domain.settings import settings, BASE_DIR
+from domain.settings import BASE_DIR
+from domain.validators import validate_setting
 
 
 def main():
@@ -9,10 +11,11 @@ def main():
     logging.basicConfig(format=format, level=logging.DEBUG,
                         datefmt="%H:%M:%S")
 
-    settings.EMAIL_HOST = 'smtp.zoho.com'
-    settings.EMAIL_PORT = 465
-    settings.EMAIL_USERNAME = 'support@tripvalue.com.ng'
-    settings.EMAIL_PASSWORD = 'JxnracXdqYZF'
+    errors = validate_setting()
+    if errors:
+        for error in errors:
+            print(error)
+        sys.exit(1)
 
     event = Event()
     t = Thread(target=send_email, args=(event,), kwargs={

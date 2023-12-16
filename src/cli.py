@@ -1,9 +1,12 @@
 from cmd import Cmd
 import sys
+from constant import APP_NAME
 from domain.mail import send_email
 from domain.settings import BASE_DIR, settings
 from threading import Event, Thread
 import logging
+
+from domain.validators import validate_setting
 
 format = "%(asctime)s: %(message)s"
 file_handler = logging.FileHandler(BASE_DIR / 'mailer.log')
@@ -13,8 +16,9 @@ logging.basicConfig(
 
 event = Event()
 
+
 class MailerShell(Cmd):
-    intro = 'Welcome to the Bulk Mailer shell. \
+    intro = f'Welcome to the {APP_NAME} shell. \
 Type help or ? to list commands.\n'
     prompt = '(mailer) '
 
@@ -31,6 +35,12 @@ Type help or ? to list commands.\n'
             return
         if not self.message:
             print('Please provide a message: message Hello {name}')
+            return
+
+        errors = validate_setting()
+        if errors:
+            for error in errors:
+                print(error)
             return
 
         event.clear()
@@ -64,7 +74,7 @@ Type help or ? to list commands.\n'
 
     def do_bye(self, arg):
         'Exit the shell'
-        print('Thank you for using Bulk Mailer')
+        print(f'Thank you for using {APP_NAME}')
         return True
 
     def precmd(self, line):
