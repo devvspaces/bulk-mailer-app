@@ -21,6 +21,7 @@ class Settings:
 
     def load(self):
         """Load settings from a file."""
+        SETTINGS_DIR.touch(exist_ok=True)
         with open(SETTINGS_DIR) as f:
             read = f.read()
             self._settings = {}

@@ -4,7 +4,9 @@ from domain.settings import BASE_DIR
 
 format = "%(asctime)s: %(message)s"
 
-file_handler = logging.FileHandler(BASE_DIR / 'mailer.log')
+LOG_PATH = BASE_DIR / 'mailer.log'
+LOG_PATH.touch(exist_ok=True)
+file_handler = logging.FileHandler(LOG_PATH)
 stream_handler = logging.StreamHandler()
 
 logging.basicConfig(

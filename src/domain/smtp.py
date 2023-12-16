@@ -23,6 +23,7 @@ class EmailConnection(ContextDecorator):
         self.username = username
         self.password = password
         self.connection = None
+        self.sender = sender
         if sender is None:
             self.sender = username
         self.context = ssl.create_default_context()
@@ -70,4 +71,4 @@ class EmailConnection(ContextDecorator):
                 )
                 message.attach(part)
 
-        self.connection.sendmail(self.sender, recipient, message.as_string())
+        self.connection.sendmail(self.username, recipient, message.as_string())

@@ -15,6 +15,15 @@ from validators import only_numbers
 import logger  # noqa
 
 
+try:
+    from ctypes import windll  # Only exists on Windows.
+
+    myappid = "xdevs.mailthunder.beta.version"
+    windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+except ImportError:
+    pass
+
+
 class ScrollableLabel(tk.Frame):
     def __init__(self, parent, text, *args, **kwargs):
         super().__init__(parent)
@@ -71,12 +80,22 @@ class HomeWindow(tk.Frame):
             relief=tk.FLAT,
         )
         body_lbl = tk.Label(right_frame, text="Body", pady=10)
-        body_text = tk.Text(right_frame, borderwidth=10, relief=tk.FLAT)
+        body_text = tk.Text(right_frame, borderwidth=10, relief=tk.FLAT, font=(
+            "Arial", 10))
+        sender_lbl = tk.Label(right_frame, text="Sender")
+        sender_entry = tk.Entry(
+            right_frame,
+            borderwidth=10,
+            relief=tk.FLAT,
+        )
+        sender_entry.insert(0, settings.EMAIL_USERNAME or '')
 
         subject_lbl.grid(row=0, column=0, sticky="w")
         subject_entry.grid(row=1, column=0, sticky="we", pady=10)
-        body_lbl.grid(row=2, column=0, sticky="w", pady=10)
-        body_text.grid(row=3, column=0, sticky="w")
+        sender_lbl.grid(row=2, column=0, sticky="w")
+        sender_entry.grid(row=3, column=0, sticky="we", pady=10)
+        body_lbl.grid(row=4, column=0, sticky="w")
+        body_text.grid(row=5, column=0, sticky="w", pady=10)
 
         left_frame = tk.Frame(self)
         left_frame.grid(row=0, column=1, sticky="nsew", padx=10)
@@ -103,6 +122,7 @@ class HomeWindow(tk.Frame):
 
         self.subject = subject_entry
         self.body = body_text
+        self.sender = sender_entry
 
     def open_paste_window(self):
         top = tk.Toplevel(self)
@@ -148,6 +168,7 @@ class HomeWindow(tk.Frame):
 
         subject = self.subject.get()
         message = self.body.get("1.0", tk.END).strip()
+        sender = self.sender.get()
 
         if not subject:
             messagebox.showerror("Error", "Please provide a subject")
@@ -175,6 +196,7 @@ class HomeWindow(tk.Frame):
                 "subject": subject,
                 "message": message,
                 "counter": self.counter,
+                "sender": sender,
             },
             daemon=True
         )
@@ -224,10 +246,10 @@ class SettingsWindow(tk.Frame):
         save_btn = tk.Button(form_frm, text="Save", command=self.save)
 
         # Set values from settings
-        host_entry.insert(0, settings.EMAIL_HOST)
-        port_entry.insert(0, settings.EMAIL_PORT)
-        username_entry.insert(0, settings.EMAIL_USERNAME)
-        password_entry.insert(0, settings.EMAIL_PASSWORD)
+        host_entry.insert(0, settings.EMAIL_HOST or '')
+        port_entry.insert(0, settings.EMAIL_PORT or '')
+        username_entry.insert(0, settings.EMAIL_USERNAME or '')
+        password_entry.insert(0, settings.EMAIL_PASSWORD or '')
         wait_time_entry.insert(0, settings.WAIT_TIME or '')
 
         # Add validations
@@ -352,10 +374,10 @@ class MainWindow(tk.Frame):
         logs_btn.pack(side=tk.LEFT, padx=10)
 
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    root.geometry("800x600")
-    root.title(APP_NAME)
-    root.resizable(False, False)
-    main = MainWindow(root)
-    root.mainloop()
+root = tk.Tk()
+root.iconbitmap(BASE_DIR / "icons" / "icon.ico")
+root.geometry("800x600")
+root.title(APP_NAME)
+root.resizable(False, False)
+main = MainWindow(root)
+root.mainloop()

@@ -41,9 +41,14 @@ class EmailCounter:
 
 
 def send_email(
-    event: Event, csv_string: str = '', csv_file: str = '',
-    subject: str = '', message: str = '', attachments: list[str] = None,
-    counter: EmailCounter = None
+    event: Event,
+    csv_string: str = "",
+    csv_file: str = "",
+    subject: str = "",
+    message: str = "",
+    sender: str = "",
+    attachments: list[str] = None,
+    counter: EmailCounter = None,
 ):
     if csv_file:
         csv_string = read_csv(csv_file)
@@ -56,8 +61,11 @@ def send_email(
         counter.set_total(len(l_reader))
 
     with EmailConnection(
-        settings.EMAIL_HOST, settings.EMAIL_PORT,
-        settings.EMAIL_USERNAME, settings.EMAIL_PASSWORD
+        settings.EMAIL_HOST,
+        settings.EMAIL_PORT,
+        settings.EMAIL_USERNAME,
+        settings.EMAIL_PASSWORD,
+        sender
     ) as connection:
         for index, row in enumerate(l_reader):
             if event.is_set():
@@ -65,21 +73,22 @@ def send_email(
                 return
             logging.debug(f"Sending email to {row['email']}")
             new_message = message.format(**row)
-            text = renderer.render('email.txt', message=new_message)
-            html = renderer.render('email.html', message=new_message)
+            text = renderer.render("email.txt", message=new_message)
+            html = renderer.render("email.html", message=new_message)
             subject = subject.format(**row)
             try:
                 connection.send(
                     subject=subject,
-                    recipient=row['email'],
+                    recipient=row["email"],
                     text=text,
                     html=html,
-                    attachments=attachments
+                    attachments=attachments,
                 )
                 if counter:
                     counter += 1
-            except Exception:
+            except Exception as e:
                 logging.error(f"Error sending email to {row['email']}")
+                logging.exception(e)
                 continue
 
             if index == len(l_reader) - 1:
